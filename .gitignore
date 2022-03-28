@@ -1,0 +1,6 @@
+.ipynb_checkpoints/
+__pycache__
+
+export PATH="/home/kmredilla/miniconda3/bin:$PATH"
+# anaconda project env
+envs/
