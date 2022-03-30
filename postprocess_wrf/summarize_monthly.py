@@ -11,7 +11,6 @@ from pathlib import Path
 import numpy as np
 import rasterio as rio
 import xarray as xr
-from rasterio.crs import CRS # need rasterio.crs.CRS instead of pyproj.crs.CRS
 from rasterio.warp import reproject, Resampling
 
 
@@ -88,7 +87,7 @@ def summarize_month_array(arr, varname):
     elif varname in ["tskmax", "t2max"]:
         return arr.max(axis=0)
     elif varname == "prtot":
-        return arr.max(axis=0)
+        return arr.sum(axis=0)
 
 
 def write_raster(arr, dst_fp, spatial_di):
@@ -129,12 +128,22 @@ def write_raster(arr, dst_fp, spatial_di):
     varname = dst_fp.name.split("_")[0]
     if varname in ["tsk", "tskmax", "t2", "t2max"]:
         dst_arr = dst_arr - 273.15
+    # delete
+    month = dst_fp.name.split("_")[-1].split(".")[0]
+    if (varname == "t2") & (month == "06"):
+        new_meta = meta.copy()
+        new_meta.update({"height": 209, "width": 339})
+        with rio.open(dst_fp.parent.joinpath("test_era_1980_06_summary.tif"), "w", **new_meta) as dst:
+            dst.write(arr, 1)
+        
     dst_arr = np.round(dst_arr, 1)
+    
     
     #write it
     with rio.open(dst_fp, "w", **meta) as dst:
         dst.write(dst_arr, 1)
 
+        
     return
 
 
